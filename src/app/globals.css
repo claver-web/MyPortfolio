@@ -101,3 +101,13 @@ pre code {
 .hljs-number, .hljs-regexp, .hljs-link { color: #f59e0b; }
 .hljs-variable, .hljs-name { color: #60a5fa; }
 
+/* Disable persistent hover transforms on touch screens */
+@media (hover: none) {
+  .hover\:-translate-y-1:hover,
+  .hover\:-translate-y-0\.5:hover,
+  .hover\:scale-105:hover,
+  .hover\:scale-\[1\.02\]:hover {
+    transform: none !important;
+  }
+}
+

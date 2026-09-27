@@ -19,17 +19,17 @@ export function PublicNav() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-neutral-200 dark:border-neutral-900 bg-white/80 dark:bg-black/80 backdrop-blur-md transition-colors">
+    <header className="sticky top-0 z-40 w-full border-b border-neutral-200 dark:border-neutral-900 bg-white/90 dark:bg-black/90 backdrop-blur-md transition-colors">
       <div className="container mx-auto px-4 max-w-6xl h-16 flex items-center justify-between">
         {/* Brand / Logo */}
         <Link
           href="/"
-          className="group flex items-center gap-2 text-sm font-semibold tracking-tight text-neutral-900 dark:text-white"
+          className="group flex items-center gap-2.5 min-h-[44px] text-sm font-semibold tracking-tight text-neutral-900 dark:text-white"
         >
-          <div className="w-8 h-8 rounded-lg bg-black text-white dark:bg-white dark:text-black flex items-center justify-center font-mono text-xs font-bold transition-transform duration-200 group-hover:scale-105">
+          <div className="w-8 h-8 rounded-lg bg-black text-white dark:bg-white dark:text-black flex items-center justify-center font-mono text-xs font-bold transition-transform duration-200 group-hover:scale-105 shadow-sm">
             <Terminal className="w-4 h-4" />
           </div>
-          <span className="font-mono text-sm tracking-wide">PORTFOLIO</span>
+          <span className="font-mono text-sm tracking-wider">PORTFOLIO</span>
         </Link>
 
         {/* Desktop Navigation */}
@@ -40,7 +40,7 @@ export function PublicNav() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`px-3.5 py-1.5 rounded-md text-sm font-medium transition-all ${
+                className={`min-h-[44px] inline-flex items-center px-3.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${
                   isActive
                     ? "bg-neutral-100 text-black dark:bg-neutral-900 dark:text-white font-semibold"
                     : "text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-neutral-900/50"
@@ -59,7 +59,7 @@ export function PublicNav() {
           <Link
             href="/admin"
             aria-label="Admin panel"
-            className="p-2 rounded-md text-neutral-500 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-900 transition-colors"
+            className="min-w-[44px] min-h-[44px] inline-flex items-center justify-center rounded-lg border border-neutral-200 dark:border-neutral-800 text-neutral-500 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-900 transition-colors"
             title="Admin Login"
           >
             <Shield className="w-4 h-4" />
@@ -68,7 +68,7 @@ export function PublicNav() {
           {/* Mobile hamburger button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 rounded-md text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-900 transition-colors"
+            className="md:hidden min-w-[44px] min-h-[44px] inline-flex items-center justify-center rounded-lg border border-neutral-200 dark:border-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-900 transition-colors"
             aria-label="Toggle navigation menu"
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -78,7 +78,7 @@ export function PublicNav() {
 
       {/* Mobile navigation drop-down */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-b border-neutral-200 dark:border-neutral-900 bg-white dark:bg-black px-4 py-4 space-y-2">
+        <div className="md:hidden border-b border-neutral-200 dark:border-neutral-900 bg-white dark:bg-black px-4 py-4 space-y-1">
           {NAV_LINKS.map((link) => {
             const isActive = pathname === link.href;
             return (
@@ -86,7 +86,7 @@ export function PublicNav() {
                 key={link.href}
                 href={link.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className={`block px-3 py-2 rounded-md text-sm font-medium ${
+                className={`min-h-[44px] flex items-center px-4 rounded-lg text-sm font-medium ${
                   isActive
                     ? "bg-neutral-100 dark:bg-neutral-900 text-black dark:text-white font-semibold"
                     : "text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white"
