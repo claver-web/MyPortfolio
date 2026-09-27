@@ -1,0 +1,513 @@
+PROMPT 1 — Project Bootstrap
+text
+Create a new Next.js 14 project called "portfolio" using:
+- TypeScript
+- App Router (src/ directory)
+- Tailwind CSS
+- ESLint
+- Import alias "@/*"
+
+Then install these dependencies:
+- prisma, @prisma/client
+- next-auth, bcryptjs, @types/bcryptjs
+- framer-motion
+- recharts
+- lucide-react
+- zod
+- react-hook-form
+
+Set up a clean folder structure:
+src/
+  app/
+    (public)/
+    admin/
+    api/
+  components/
+    ui/
+    sections/
+    admin/
+  lib/
+  types/
+  hooks/
+  styles/
+
+Show me the exact commands to run and the final folder tree.
+
+
+
+PROMPT 2 — Environment & Config
+text
+Create the following config files for the portfolio project:
+
+1. `.env.example` and `.env.local` with:
+   - DATABASE_URL (PostgreSQL)
+   - NEXTAUTH_SECRET
+   - NEXTAUTH_URL
+   - ADMIN_EMAIL
+   - ADMIN_PASSWORD
+
+2. `next.config.mjs` optimized for:
+   - Image optimization (remote patterns for github, linkedin, leetcode avatars)
+   - Compression
+   - PoweredBy header disabled
+   - Experimental optimizations
+
+3. `tailwind.config.ts` with:
+   - Black and white theme (extended colors: pure black #000, pure white #FFF, grays)
+   - Dark mode via class strategy
+   - Custom animations (fade, slide, scale, marquee)
+   - Font family (Inter + JetBrains Mono)
+   - Container settings
+
+4. `tsconfig.json` with strict mode and path aliases.
+
+Give me full file contents.
+
+
+
+PROMPT 3 — Prisma Schema (Full Database Design)
+text
+Design a complete Prisma schema for a portfolio website with an admin panel.
+
+Models required:
+1. User (admin) — id, email, password (hashed), name, role, createdAt
+2. ProfileLink — key (github/githubWork/leetcode/linkedin/resume/etc), label, url, icon, order, updatedAt
+3. Project — id, title, slug, description, readme (Text), liveUrl, repoUrl, techStack (String[]), category (WEBSITE | AGENTIC_AI | FUTURE), status (LIVE | IN_PROGRESS | PLANNED), featured (Boolean), thumbnail, order, createdAt, updatedAt
+4. Experience — company, role, description, startDate, endDate, current (Boolean), location, order
+5. Qualification — degree, institution, year, description, order
+6. Certificate — title, issuer, issueDate, credentialUrl, imageUrl, order
+7. Skill — name, category (LANGUAGE | FRAMEWORK | TOOL | DATABASE | AI_ML | OTHER), proficiency (1-100), order
+8. VisitorLog — id, ipHash (hashed, not raw), userAgent, country, city, path, referrer, device, browser, os, createdAt
+9. SiteSetting — key/value store for hero title, tagline, bio, resume link, etc.
+
+Add relations, indexes, and enum types where appropriate.
+Output: prisma/schema.prisma
+Then list the commands to run migrations and seed.
+
+
+
+PROMPT 4 — Prisma Client & Seed Script
+text
+Create:
+
+1. `src/lib/prisma.ts` — singleton Prisma client with dev-mode hot-reload safety.
+
+2. `prisma/seed.ts` — seed script that inserts:
+   - One admin user (email & password from .env, hashed with bcryptjs)
+   - Default ProfileLinks: github, githubWork, leetcode, linkedin, resume
+   - SiteSettings: heroTitle, tagline, bio, resumeUrl, email, location
+   - A few sample Skills, Projects (one WEBSITE, one AGENTIC_AI, one FUTURE)
+
+3. Update `package.json` with a `prisma.seed` config and scripts:
+   - db:generate, db:migrate, db:push, db:seed, db:studio
+
+Give full contents.
+
+
+PROMPT 5 — Authentication (NextAuth)
+text
+Set up NextAuth.js (v4) credentials-based authentication for the admin panel:
+
+1. `src/lib/auth.ts` — authOptions with:
+   - CredentialsProvider (email + password, bcrypt compare against User table)
+   - JWT session strategy (30-day expiry)
+   - Callbacks: jwt, session (attach role)
+   - Custom pages: signIn: "/admin/login"
+
+2. `src/app/api/auth/[...nextauth]/route.ts` — handler
+
+3. `src/middleware.ts` — protect all /admin/* routes except /admin/login
+   - Redirect unauthenticated users to /admin/login
+   - Allow authenticated users through
+
+4. Type augmentation in `src/types/next-auth.d.ts` for session.user.role
+
+Give full code for each file.
+
+
+
+PROMPT 6 — Global Theme (Black & White) + Layout
+text
+Create the global styling and root layout for a black-and-white portfolio:
+
+1. `src/app/globals.css`:
+   - Tailwind directives
+   - CSS variables for light/dark (--bg, --fg, --muted, --border)
+   - Smooth scroll
+   - Custom scrollbar (black/white)
+   - Selection color
+   - Font smoothing
+   - Noise/grain subtle background texture (SVG data URI)
+   - Reduced-motion media query
+
+2. `src/app/layout.tsx`:
+   - Inter + JetBrains Mono fonts via next/font
+   - Metadata (title, description, OG, Twitter)
+   - Theme provider (next-themes with class attribute, default dark)
+   - Toaster for notifications
+   - Suppress hydration warnings
+
+3. `src/components/ThemeProvider.tsx` and `ThemeToggle.tsx` — sun/moon icon toggle, no flash on load (inline script).
+
+Give full code.
+
+
+
+PROMPT 7 — Visitor Tracking System
+text
+Build a privacy-friendly visitor tracking system:
+
+1. `src/app/api/track/route.ts` (POST):
+   - Accepts: path, referrer
+   - Reads IP from headers (x-forwarded-for)
+   - Hashes IP with SHA-256 + salt (never store raw IP)
+   - Parses user-agent (device: mobile/tablet/desktop, browser, os) — implement lightweight parser, no external dep
+   - Gets country/city from Vercel headers (x-vercel-ip-country, x-vercel-ip-city) with fallback
+   - Stores in VisitorLog table
+   - Rate-limit: 1 log per IP per path per 30 min (check last entry)
+
+2. `src/components/VisitorTracker.tsx` — client component that fires on route change using usePathname from next/navigation, sends POST to /api/track.
+
+3. Add VisitorTracker to root layout.
+
+4. `src/app/api/analytics/route.ts` (GET, admin-only):
+   - Returns: total visits, unique visitors, visits last 7/30 days, top pages, top countries, device breakdown, browser breakdown, recent visitors.
+
+Give full code.
+
+
+
+PROMPT 8 — Public Homepage (Hero + Sections)
+text
+Build the public homepage at `src/app/(public)/page.tsx` composed of these sections:
+
+1. `Hero.tsx`:
+   - Full-viewport, black background
+   - Animated headline (framer-motion, staggered words)
+   - Subtitle, CTA buttons (View Projects, Download Resume)
+   - Floating gradient orbs (black → gray) with slow parallax
+   - Scroll-down indicator (bouncing arrow)
+   - Mouse-follow subtle glow
+
+2. `SocialLinks.tsx`:
+   - Fetches ProfileLinks from DB (server component)
+   - Renders GitHub, GitHub Work, LeetCode, LinkedIn icons with hover animation
+   - Icons from lucide-react
+
+3. `FeaturedProjects.tsx`:
+   - Server component, fetches featured projects
+   - Card grid: thumbnail, title, tech badges, live/repo links
+   - Hover: scale, border glow (black↔white)
+
+4. `SkillsPreview.tsx`:
+   - Marquee of skills (infinite scroll animation)
+   - Grouped by category
+
+5. `CTASection.tsx`:
+   - "Let's build something" with email link
+
+Use framer-motion for scroll-triggered reveals (whileInView).
+Responsive: mobile-first, tailwind breakpoints.
+Give full code for every file.
+
+
+
+PROMPT 9 — Projects & Agentic AI Pages
+text
+Create two public pages:
+
+1. `src/app/(public)/projects/page.tsx`:
+   - Lists all projects with category filter (All | Website | Agentic AI | Future)
+   - Filter via URL searchParams (?category=AGENTIC_AI)
+   - Grid layout, pagination or infinite scroll
+   - Each card links to /projects/[slug]
+
+2. `src/app/(public)/projects/[slug]/page.tsx`:
+   - Dynamic route, generateStaticParams for SSG
+   - Shows: title, description, tech stack, live link, repo link
+   - Renders README.md content (use react-markdown + remark-gfm + rehype-highlight)
+   - Install: npm i react-markdown remark-gfm rehype-highlight rehype-raw
+   - Style markdown with prose (tailwind typography — install @tailwindcss/typography)
+   - "Back to projects" link
+   - Open Graph metadata per project
+
+3. `src/app/(public)/agentic-ai/page.tsx`:
+   - Same as projects but filtered to AGENTIC_AI category
+   - Hero explaining your agentic AI work
+
+Give full code.
+PROMPT 10 — Experience, Skills, Certificates Pages
+text
+Create these public pages:
+
+1. `src/app/(public)/experience/page.tsx`:
+   - Vertical timeline of Experience entries (alternating left/right on desktop)
+   - Also shows Qualifications below
+   - Animated entry (framer-motion, whileInView)
+   - Company logos (if stored) or initials in black circle
+
+2. `src/app/(public)/skills/page.tsx`:
+   - Grouped by category
+   - Each skill shows animated progress bar (0 → proficiency on scroll)
+   - Filter tabs
+
+3. `src/app/(public)/certificates/page.tsx`:
+   - Card grid with certificate images, issuer, date, credential link
+
+All must be server components fetching from Prisma directly (no API hop).
+Responsive and animated.
+PROMPT 11 — Admin Dashboard (Layout + Login)
+text
+Build the admin panel shell:
+
+1. `src/app/admin/login/page.tsx`:
+   - Centered card, black background
+   - Email + password fields, react-hook-form + zod validation
+   - Sign in with next-auth signIn("credentials")
+   - Error states
+
+2. `src/app/admin/layout.tsx`:
+   - Sidebar (fixed, collapsible on mobile) with links:
+     Dashboard, Profile Links, Projects, Experience, Qualifications, Certificates, Skills, Visitors, Settings
+   - Top bar with user email, theme toggle, logout
+   - Server-side session check (redirect if not authed)
+   - Clean black/white design
+
+3. `src/components/admin/Sidebar.tsx` and `AdminHeader.tsx`
+
+Give full code.
+PROMPT 12 — Admin: Profile Links (GitHub, LeetCode, LinkedIn, Resume)
+text
+Build `src/app/admin/links/page.tsx`:
+
+- Table showing all ProfileLinks (key, label, url, order)
+- Inline edit or modal form to add/edit
+- Server actions for CRUD (create/update/delete)
+- Validate URLs with zod
+- Support these keys: github, githubWork, leetcode, linkedin, resume, email, twitter, website
+- Reorder via drag (use @dnd-kit/core or simple up/down buttons)
+- Upload resume PDF to /public/uploads via a separate upload API route (validate mime + size ≤ 5MB)
+- After upload, update resume ProfileLink URL automatically
+
+Also create `src/app/api/upload/route.ts`.
+PROMPT 13 — Admin: Projects CRUD with README Upload
+text
+Build `src/app/admin/projects/page.tsx` and sub-routes:
+
+1. List page: table of projects (title, category, status, featured toggle, actions)
+2. Create/edit page: `src/app/admin/projects/new/page.tsx` and `[id]/page.tsx`
+   - Form fields: title, slug (auto from title), description, README (textarea OR upload .md file), liveUrl, repoUrl, techStack (tag input), category, status, featured, thumbnail upload
+   - README upload: read file content client-side OR via /api/upload and store in DB
+   - Preview README live with react-markdown
+3. Delete with confirmation
+4. Use Server Actions for mutations + revalidatePath
+5. Zod validation everywhere
+
+Give full code.
+PROMPT 14 — Admin: Experience, Qualifications, Certificates, Skills
+text
+Build CRUD admin pages for:
+
+1. `/admin/experience` — list + form (company, role, description, dates, current checkbox, location, order)
+2. `/admin/qualifications` — degree, institution, year, description, order
+3. `/admin/certificates` — title, issuer, issueDate, credentialUrl, image upload
+4. `/admin/skills` — name, category, proficiency slider, order, grouped display
+
+Use the same pattern as Projects: server components + server actions + zod + revalidation.
+Reusable form components in `src/components/admin/forms/`.
+Give full code.
+PROMPT 15 — Admin: Analytics & Visitors Dashboard
+text
+Build `src/app/admin/visitors/page.tsx`:
+
+- Summary cards: Total Visits, Unique Visitors, Today, This Week, This Month
+- Line chart (Recharts) of visits over last 30 days
+- Bar chart: top 10 pages
+- Pie chart: device breakdown (mobile/tablet/desktop)
+- Bar chart: top countries
+- Browser breakdown
+- Table of recent 50 visitors (time, path, country, device, browser, referrer)
+- Date range filter (7d / 30d / 90d / custom)
+
+All data via /api/analytics or direct Prisma queries in server component.
+Use Recharts with black-and-white palette.
+Give full code.
+PROMPT 16 — Admin: Site Settings
+text
+Build `src/app/admin/settings/page.tsx`:
+- Form to edit SiteSetting key/values:
+  - heroTitle, tagline, bio, location, email
+  - resumeUrl, ogImage
+  - seoTitle, seoDescription
+  - socialLinks (JSON)
+- Save via server action, upsert into SiteSetting table
+- Public pages read these values (make Hero dynamic or revalidate)
+
+Give full code.
+
+
+PROMPT 17 — Animations & Scroll UX Polish
+text
+Add polished animations site-wide:
+
+1. Create `src/components/motion/`:
+   - `FadeIn.tsx` — whileInView fade + translateY
+   - `StaggerList.tsx` — stagger children
+   - `ScrollProgress.tsx` — top progress bar bound to scroll
+   - `CursorGlow.tsx` — radial glow following cursor on desktop only
+   - `Marquee.tsx` — infinite horizontal scroll
+
+2. Add "scroll to increase animation" behavior:
+   - When user scrolls, hero elements parallax (useScroll + useTransform from framer-motion)
+   - Sections scale from 0.95 → 1 as they enter viewport
+   - On viewport resize, re-trigger layout animations (use useResizeObserver)
+
+3. Respect `prefers-reduced-motion` — disable all animations if set.
+
+4. Lazy-load heavy components with next/dynamic.
+
+Give full code.
+
+
+PROMPT 18 — SEO, Metadata, Performance
+text
+Optimize the portfolio for SEO and performance:
+
+1. Per-page metadata using Next.js Metadata API:
+   - /, /projects, /projects/[slug], /agentic-ai, /experience, /skills, /certificates
+   - Open Graph images via `app/opengraph-image.tsx` (dynamic with ImageResponse)
+   - robots.ts and sitemap.ts (dynamic from DB)
+
+2. Performance:
+   - All images via next/image with proper sizes
+   - Font preload, display swap
+   - `export const revalidate = 3600` on public pages (ISR)
+   - Dynamic import for Recharts (admin only)
+   - Prefetch links
+   - Route segment config where useful
+
+3. Accessibility:
+   - Semantic HTML, ARIA labels, focus states, skip link
+
+Give the code and a Lighthouse audit checklist.
+
+
+PROMPT 19 — Responsive + Cross-Device QA
+text
+Audit and fix responsiveness across the whole portfolio:
+
+- Ensure every page works at: 320px, 375px, 768px, 1024px, 1440px, 2560px
+- Mobile: hamburger menu for admin sidebar, stacked cards
+- Tablet: 2-col grids
+- Desktop: 3-col grids, timelines side by side
+- Ultra-wide (2xl+): max-w container, generous whitespace
+- Touch targets ≥ 44px
+- Hover states only on devices with hover (use @media (hover: hover))
+- Test dark mode and light mode on every page
+
+List every file that needs changes and give the updated code.
+
+
+PROMPT 20 — Deployment & Final Checklist
+text
+Prepare for production deployment on Vercel:
+
+1. Add `postinstall: prisma generate` to package.json scripts.
+2. Create `vercel.json` if needed (cron for cleanup of old VisitorLogs, etc.).
+3. Add a cleanup API route `/api/cron/cleanup` that deletes VisitorLogs older than 90 days.
+4. Provide step-by-step Vercel deployment:
+   - Connect GitHub repo
+   - Set env vars (DATABASE_URL, NEXTAUTH_SECRET, NEXTAUTH_URL, ADMIN_EMAIL, ADMIN_PASSWORD)
+   - Use Neon / Supabase for Postgres
+   - Run `prisma migrate deploy` in build command
+5. Post-deploy: create admin user via seed or a one-time /api/setup route (guarded by env token).
+6. Provide a final QA checklist:
+   - Login works
+   - All CRUD works
+   - Visitor tracking logs
+   - README renders on project pages
+   - Resume downloads
+   - Dark/light toggle persists
+   - Lighthouse ≥ 90 on all metrics
+   - Mobile/desktop tested
+
+Give exact commands and env values.
+🗂️ Quick Reference — Send Prompts Like This
+#	Prompt Focus	Output
+1	Bootstrap	Project + folder tree
+2	Config	tailwind, next.config, env
+3	Schema	prisma/schema.prisma
+4	Seed	Client + seed data
+5	Auth	NextAuth + middleware
+6	Theme	globals.css + layout
+7	Tracking	Visitor system
+8	Homepage	Hero + sections
+9	Projects	Public + README render
+10	Experience/Skills	Public pages
+11	Admin shell	Login + layout
+12	Admin links	GitHub/LeetCode/Resume
+13	Admin projects	CRUD + README upload
+14	Admin others	Exp/Qual/Cert/Skills
+15	Analytics	Visitors dashboard
+16	Settings	Site settings
+17	Animations	Motion components
+18	SEO/Perf	Metadata + ISR
+19	Responsive	QA fixes
+20	Deploy	Vercel + checklist
+✅ Tips for Best Results
+One prompt at a time. Don't merge them — each builds context.
+
+Paste errors back. If a build fails, send the error + "fix this" to the AI.
+
+Commit after each prompt so you can roll back: git add . && git commit -m "prompt 7: visitor tracking".
+
+Test after prompts 6, 8, 11, 15, 19 in the browser.
+
+Keep your README files handy — you'll paste them in Admin → Projects.
+
+Use Neon.tech for free Postgres — easiest DB for Vercel.
+
+🎁 Bonus: Master Prompt (If You Want to Do It in One Shot)
+If your AI assistant has a large context window (Claude 3.5+ / GPT-4-turbo+), you can send this instead:
+
+text
+Build a complete production-ready portfolio website with admin panel.
+
+STACK: Next.js 14 (App Router, src dir, TS), Tailwind, Prisma + PostgreSQL, NextAuth (credentials), Framer Motion, Recharts, react-markdown.
+
+THEME: Strict black & white, dark mode default, minimalist, professional, animated (scroll reveals, parallax, cursor glow, marquee), fully responsive (320px–2560px), prefers-reduced-motion support.
+
+PUBLIC PAGES:
+- / (hero, social links, featured projects, skills marquee, CTA)
+- /projects (filterable grid) + /projects/[slug] (renders README.md)
+- /agentic-ai (AI systems showcase)
+- /experience (timeline + qualifications)
+- /skills (grouped, animated bars)
+- /certificates (grid)
+
+ADMIN (/admin, protected by middleware):
+- /login
+- / (dashboard summary)
+- /links (github, githubWork, leetcode, linkedin, resume PDF upload)
+- /projects (CRUD + README .md upload + live preview)
+- /experience, /qualifications, /certificates, /skills (CRUD)
+- /visitors (analytics: charts, tables, date filters)
+- /settings (hero text, bio, resume URL, SEO)
+
+FEATURES:
+- Privacy-friendly visitor tracking (hashed IP, device/browser/os parse, Vercel geo headers, rate-limited)
+- Server Actions for mutations, zod validation, revalidatePath
+- SEO: dynamic sitemap, robots, per-page metadata, OG images
+- Performance: ISR, next/image, next/font, dynamic imports
+- Server Components by default, Client only where needed
+
+DELIVER:
+1. Full folder tree
+2. All config files (next.config, tailwind, tsconfig, .env.example)
+3. prisma/schema.prisma + seed.ts
+4. Every page.tsx, layout.tsx, route.ts, component, lib, hook, type
+5. Deployment guide for Vercel + Neon
+6. Post-deploy QA checklist
+
+Assume I will copy-paste file by file. Be exhaustive.
+
