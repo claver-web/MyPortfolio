@@ -14,6 +14,12 @@ export const metadata: Metadata = {
 
 export const revalidate = 60;
 
+function isImageFormat(url: string | null | undefined): boolean {
+  if (!url) return false;
+  if (/\.pdf($|\?)/i.test(url)) return false;
+  return /\.(png|jpe?g|webp|gif|svg|avif)($|\?)/i.test(url) || url.startsWith("data:image/");
+}
+
 export default async function AgenticAIPage() {
   let projects: Array<{
     id: string;
@@ -144,7 +150,7 @@ export default async function AgenticAIPage() {
                     </div>
                   </div>
 
-                  {project.thumbnail && (
+                  {project.thumbnail && isImageFormat(project.thumbnail) && (
                     <div className="relative w-full h-44 mb-4 rounded-lg overflow-hidden border border-neutral-100 dark:border-neutral-800">
                       <Image
                         src={project.thumbnail}

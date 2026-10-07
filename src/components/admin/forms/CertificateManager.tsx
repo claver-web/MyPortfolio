@@ -4,7 +4,13 @@ import React, { useState } from "react";
 import Image from "next/image";
 import { saveCertificate, deleteCertificate } from "@/lib/actions/content";
 import { toast } from "@/components/ui/Toaster";
-import { Plus, Edit2, Trash2, X, Check, Loader2, Award, Upload, ExternalLink } from "lucide-react";
+import { Plus, Edit2, Trash2, X, Check, Loader2, Award, Upload, ExternalLink, FileText } from "lucide-react";
+
+function isImageFormat(url: string | null | undefined): boolean {
+  if (!url) return false;
+  if (/\.pdf($|\?)/i.test(url)) return false;
+  return /\.(png|jpe?g|webp|gif|svg|avif)($|\?)/i.test(url) || url.startsWith("data:image/");
+}
 
 interface CertificateItem {
   id: string;
@@ -148,9 +154,17 @@ export function CertificateManager({ initialItems }: { initialItems: Certificate
             >
               <div>
                 {cert.imageUrl ? (
-                  <div className="relative w-full h-36 mb-4 rounded-lg overflow-hidden border border-neutral-100 dark:border-neutral-800">
-                    <Image src={cert.imageUrl} alt={cert.title} fill className="object-cover" />
-                  </div>
+                  isImageFormat(cert.imageUrl) ? (
+                    <div className="relative w-full h-36 mb-4 rounded-lg overflow-hidden border border-neutral-100 dark:border-neutral-800">
+                      <Image src={cert.imageUrl} alt={cert.title} fill className="object-cover" />
+                    </div>
+                  ) : (
+                    <div className="w-full h-36 mb-4 rounded-lg border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900 flex flex-col items-center justify-center gap-1.5 p-3 text-center">
+                      <FileText className="w-6 h-6 text-red-500" />
+                      <span className="text-[11px] font-mono text-neutral-600 dark:text-neutral-400 font-medium">PDF Certificate</span>
+                      <a href={cert.imageUrl} target="_blank" rel="noreferrer" className="text-[10px] font-mono underline text-neutral-500 hover:text-black dark:hover:text-white">View File</a>
+                    </div>
+                  )
                 ) : (
                   <div className="w-10 h-10 rounded-lg bg-neutral-100 dark:bg-neutral-900 flex items-center justify-center text-neutral-600 dark:text-neutral-400 mb-4">
                     <Award className="w-5 h-5" />
@@ -297,16 +311,28 @@ export function CertificateManager({ initialItems }: { initialItems: Certificate
                   Certificate Image
                 </label>
                 {imageUrl && (
-                  <div className="relative w-full h-32 rounded-lg overflow-hidden border border-neutral-200 dark:border-neutral-800 mb-2">
-                    <Image src={imageUrl} alt="Preview" fill className="object-cover" />
-                  </div>
+                  isImageFormat(imageUrl) ? (
+                    <div className="relative w-full h-32 rounded-lg overflow-hidden border border-neutral-200 dark:border-neutral-800 mb-2">
+                      <Image src={imageUrl} alt="Preview" fill className="object-cover" />
+                    </div>
+                  ) : (
+                    <div className="w-full h-20 rounded-lg border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900 flex items-center gap-3 p-3 mb-2">
+                      <FileText className="w-7 h-7 text-red-500 shrink-0" />
+                      <div className="overflow-hidden">
+                        <p className="text-xs font-mono font-medium text-neutral-800 dark:text-neutral-200 truncate">
+                          {imageUrl.split("/").pop()}
+                        </p>
+                        <span className="text-[10px] text-neutral-500 font-mono">PDF Document Attached</span>
+                      </div>
+                    </div>
+                  )
                 )}
                 <label className="cursor-pointer flex items-center justify-center gap-2 p-3 rounded-lg border border-dashed border-neutral-300 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-900 text-xs font-medium text-neutral-600 dark:text-neutral-400">
                   {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                  <span>{isUploading ? "Uploading..." : "Upload Certificate Image"}</span>
+                  <span>{isUploading ? "Uploading..." : "Upload Certificate Image / PDF"}</span>
                   <input
                     type="file"
-                    accept="image/*"
+                    accept="image/*,.pdf"
                     className="hidden"
                     onChange={handleImageUpload}
                     disabled={isUploading}

@@ -17,6 +17,12 @@ import {
 } from "lucide-react";
 import { GithubIcon } from "@/components/ui/Icons";
 
+function isImageFormat(url: string | null | undefined): boolean {
+  if (!url) return false;
+  if (/\.pdf($|\?)/i.test(url)) return false;
+  return /\.(png|jpe?g|webp|gif|svg|avif)($|\?)/i.test(url) || url.startsWith("data:image/") || url.startsWith("/");
+}
+
 interface SettingsFormProps {
   initialSettings: Record<string, string>;
 }
@@ -226,7 +232,7 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
           <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
             Open Graph Share Image
           </label>
-          {formData.ogImage && (
+          {formData.ogImage && isImageFormat(formData.ogImage) && (
             <div className="relative w-full h-32 rounded-lg overflow-hidden border border-neutral-200 dark:border-neutral-800 mb-2">
               <Image src={formData.ogImage} alt="OG Image Preview" fill className="object-cover" />
             </div>

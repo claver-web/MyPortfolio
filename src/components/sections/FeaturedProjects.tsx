@@ -5,6 +5,12 @@ import { prisma } from "@/lib/prisma";
 import { ArrowRight, ExternalLink, Terminal, Bot } from "lucide-react";
 import { GithubIcon } from "@/components/ui/Icons";
 
+function isImageFormat(url: string | null | undefined): boolean {
+  if (!url) return false;
+  if (/\.pdf($|\?)/i.test(url)) return false;
+  return /\.(png|jpe?g|webp|gif|svg|avif)($|\?)/i.test(url) || url.startsWith("data:image/");
+}
+
 export async function FeaturedProjects() {
   let projects: Array<{
     id: string;
@@ -104,7 +110,7 @@ export async function FeaturedProjects() {
                   </div>
 
                   {/* Thumbnail if present */}
-                  {project.thumbnail && (
+                  {project.thumbnail && isImageFormat(project.thumbnail) && (
                     <div className="relative w-full h-44 mb-4 rounded-lg overflow-hidden border border-neutral-100 dark:border-neutral-800">
                       <Image
                         src={project.thumbnail}

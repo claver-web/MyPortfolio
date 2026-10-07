@@ -11,6 +11,12 @@ export const metadata: Metadata = {
 
 export const revalidate = 60;
 
+function isImageFormat(url: string | null | undefined): boolean {
+  if (!url) return false;
+  if (/\.pdf($|\?)/i.test(url)) return false;
+  return /\.(png|jpe?g|webp|gif|svg|avif)($|\?)/i.test(url) || url.startsWith("data:image/");
+}
+
 export default async function CertificatesPage() {
   let certificates: Array<{
     id: string;
@@ -61,14 +67,34 @@ export default async function CertificatesPage() {
               >
                 <div>
                   {cert.imageUrl ? (
-                    <div className="relative w-full h-40 mb-4 rounded-lg overflow-hidden border border-neutral-100 dark:border-neutral-800">
-                      <Image
-                        src={cert.imageUrl}
-                        alt={cert.title}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                    </div>
+                    isImageFormat(cert.imageUrl) ? (
+                      <div className="relative w-full h-40 mb-4 rounded-lg overflow-hidden border border-neutral-100 dark:border-neutral-800">
+                        <Image
+                          src={cert.imageUrl}
+                          alt={cert.title}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-full h-40 mb-4 rounded-lg border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900 flex flex-col items-center justify-center gap-2 p-4 text-center">
+                        <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-950/50 flex items-center justify-center text-red-600 dark:text-red-400">
+                          <Award className="w-5 h-5" />
+                        </div>
+                        <span className="text-xs font-mono text-neutral-700 dark:text-neutral-300 font-semibold">
+                          PDF Certificate
+                        </span>
+                        <a
+                          href={cert.imageUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-[11px] font-mono text-neutral-500 hover:text-black dark:hover:text-white underline underline-offset-2 inline-flex items-center gap-1"
+                        >
+                          <span>Open Document</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </div>
+                    )
                   ) : (
                     <div className="w-10 h-10 rounded-lg bg-neutral-100 dark:bg-neutral-900 flex items-center justify-center text-neutral-800 dark:text-neutral-200 mb-4 group-hover:scale-110 transition-transform">
                       <Award className="w-5 h-5" />

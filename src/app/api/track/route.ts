@@ -90,8 +90,13 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ status: "tracked" });
-  } catch (error) {
-    console.error("Tracking error:", error);
-    return NextResponse.json({ status: "error" }, { status: 500 });
+  } catch (error: any) {
+    // If database connection timed out during cold-start or pool wait, fail silently
+    if (error?.code === "P2024" || error?.message?.includes("connection pool")) {
+      console.warn("Visitor tracking deferred: Database connection pool warming up.");
+      return NextResponse.json({ status: "deferred" });
+    }
+    console.error("Tracking error:", error?.message || error);
+    return NextResponse.json({ status: "error" }, { status: 200 });
   }
 }

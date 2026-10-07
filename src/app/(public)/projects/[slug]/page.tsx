@@ -17,6 +17,12 @@ interface ProjectDetailProps {
   };
 }
 
+function isImageFormat(url: string | null | undefined): boolean {
+  if (!url) return false;
+  if (/\.pdf($|\?)/i.test(url)) return false;
+  return /\.(png|jpe?g|webp|gif|svg|avif)($|\?)/i.test(url) || url.startsWith("data:image/");
+}
+
 export const revalidate = 3600; // ISR 1 hour
 
 export async function generateStaticParams() {
@@ -167,7 +173,7 @@ export default async function ProjectDetailPage({ params }: ProjectDetailProps) 
         </header>
 
         {/* Thumbnail Hero if available */}
-        {project.thumbnail && (
+        {project.thumbnail && isImageFormat(project.thumbnail) && (
           <div className="relative w-full h-80 sm:h-96 rounded-xl overflow-hidden mb-12 border border-neutral-200 dark:border-neutral-800">
             <Image
               src={project.thumbnail}

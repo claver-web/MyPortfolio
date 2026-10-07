@@ -20,6 +20,12 @@ const CATEGORIES = [
   { key: "FUTURE", label: "Future Concepts" },
 ];
 
+function isImageFormat(url: string | null | undefined): boolean {
+  if (!url) return false;
+  if (/\.pdf($|\?)/i.test(url)) return false;
+  return /\.(png|jpe?g|webp|gif|svg|avif)($|\?)/i.test(url) || url.startsWith("data:image/");
+}
+
 export const revalidate = 60;
 
 export default async function ProjectsPage({
@@ -146,7 +152,7 @@ export default async function ProjectsPage({
                     </div>
                   </div>
 
-                  {project.thumbnail && (
+                  {project.thumbnail && isImageFormat(project.thumbnail) && (
                     <div className="relative w-full h-44 mb-4 rounded-lg overflow-hidden border border-neutral-100 dark:border-neutral-800">
                       <Image
                         src={project.thumbnail}
