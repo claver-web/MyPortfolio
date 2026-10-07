@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { Hero } from "@/components/sections/Hero";
 import { SocialLinks } from "@/components/sections/SocialLinks";
 import { FeaturedProjects } from "@/components/sections/FeaturedProjects";
+import { GitHubReposSection } from "@/components/sections/GitHubReposSection";
 import { SkillsPreview } from "@/components/sections/SkillsPreview";
 import { CTASection } from "@/components/sections/CTASection";
 
@@ -34,6 +35,7 @@ export default async function HomePage() {
       />
       <SocialLinks />
       <FeaturedProjects />
+      <GitHubReposSection />
       <SkillsPreview />
       <CTASection email={settings.email} />
     </div>

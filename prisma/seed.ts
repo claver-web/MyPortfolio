@@ -86,6 +86,7 @@ async function main() {
     { key: "resumeUrl", value: "/resume.pdf" },
     { key: "email", value: "contact@portfolio.local" },
     { key: "location", value: "San Francisco, CA / Remote" },
+    { key: "githubReposUrl", value: "https://api.github.com/users/claver-web/repos" },
   ];
 
   for (const s of settings) {

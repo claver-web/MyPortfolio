@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { ProjectCategory } from "@prisma/client";
 import { ExternalLink, Terminal, Bot, Sparkles, ArrowRight } from "lucide-react";
 import { GithubIcon } from "@/components/ui/Icons";
+import { GitHubReposSection } from "@/components/sections/GitHubReposSection";
 
 export const metadata: Metadata = {
   title: "Projects & Architecture",
@@ -190,6 +191,8 @@ export default async function ProjectsPage({
           </div>
         )}
       </div>
+
+      <GitHubReposSection />
     </div>
   );
 }

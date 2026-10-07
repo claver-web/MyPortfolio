@@ -15,6 +15,7 @@ import {
   Sparkles,
   Search,
 } from "lucide-react";
+import { GithubIcon } from "@/components/ui/Icons";
 
 interface SettingsFormProps {
   initialSettings: Record<string, string>;
@@ -31,6 +32,7 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
     ogImage: initialSettings.ogImage || "/og-image.png",
     seoTitle: initialSettings.seoTitle || "Portfolio — Engineer & AI Specialist",
     seoDescription: initialSettings.seoDescription || "Production-grade portfolio showcasing full-stack engineering and autonomous AI systems.",
+    githubReposUrl: initialSettings.githubReposUrl || "https://api.github.com/users/claver-web/repos",
   });
 
   const [isSaving, setIsSaving] = useState(false);
@@ -282,6 +284,32 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
             rows={2}
             className="w-full px-3.5 py-2.5 rounded-lg border border-neutral-300 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-sm focus:outline-none leading-relaxed"
           />
+        </div>
+      </div>
+
+      {/* 4. GitHub Live Repositories */}
+      <div className="p-6 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 space-y-4">
+        <div className="flex items-center gap-2 pb-3 border-b border-neutral-100 dark:border-neutral-800">
+          <GithubIcon className="w-4 h-4 text-neutral-500" />
+          <h2 className="text-xs font-mono uppercase tracking-wider font-semibold text-neutral-800 dark:text-neutral-200">
+            GitHub Live Repositories (Server-Side Proxy)
+          </h2>
+        </div>
+
+        <div>
+          <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
+            GitHub Repositories API URL
+          </label>
+          <input
+            type="text"
+            value={formData.githubReposUrl}
+            onChange={(e) => handleChange("githubReposUrl", e.target.value)}
+            placeholder="https://api.github.com/users/claver-web/repos"
+            className="w-full px-3.5 py-2.5 rounded-lg border border-neutral-300 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-xs font-mono focus:outline-none"
+          />
+          <p className="text-[11px] text-neutral-500 mt-1.5">
+            🔒 Kept completely private on the server. The frontend never accesses or exposes this endpoint directly; repositories are fetched and cached server-side.
+          </p>
         </div>
       </div>
     </form>

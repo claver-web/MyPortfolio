@@ -59,6 +59,7 @@ export async function GET(req: NextRequest) {
       { key: "resumeUrl", value: "/resume.pdf" },
       { key: "email", value: adminEmail },
       { key: "location", value: "San Francisco, CA / Remote" },
+      { key: "githubReposUrl", value: "https://api.github.com/users/claver-web/repos" },
     ];
 
     for (const s of settings) {
