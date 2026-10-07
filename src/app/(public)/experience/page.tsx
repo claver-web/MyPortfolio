@@ -2,6 +2,7 @@ import React from "react";
 import { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { ExperienceTimeline } from "@/components/sections/ExperienceTimeline";
+import { GitHubReposSection } from "@/components/sections/GitHubReposSection";
 import { GraduationCap, Award, Building2 } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -76,7 +77,7 @@ export default async function ExperiencePage() {
         </div>
 
         {/* Work Experience Timeline */}
-        <section className="mb-24">
+        <section className="mb-8">
           <div className="flex items-center gap-2.5 mb-10 pb-4 border-b border-neutral-200 dark:border-neutral-800">
             <Building2 className="w-5 h-5 text-neutral-800 dark:text-neutral-200" />
             <h2 className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">
@@ -86,7 +87,18 @@ export default async function ExperiencePage() {
 
           <ExperienceTimeline experiences={formattedExperiences} />
         </section>
+      </div>
 
+      {/* Repositories & Architecture Documentation */}
+      <div className="my-16">
+        <GitHubReposSection
+          badge="Live Repositories & Systems"
+          title="Repositories & Architecture Docs"
+          subtitle="Explore the open-source engineering codebases and architectural documentation behind real-world systems."
+        />
+      </div>
+
+      <div className="container mx-auto px-4 max-w-4xl">
         {/* Academic & Qualifications Section */}
         <section>
           <div className="flex items-center gap-2.5 mb-8 pb-4 border-b border-neutral-200 dark:border-neutral-800">

@@ -1,8 +1,13 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import type { GitHubRepo } from "@/lib/github";
+import Link from "next/link";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeHighlight from "rehype-highlight";
+import rehypeRaw from "rehype-raw";
+import type { GitHubRepo, RepoArchitectureDoc } from "@/lib/github";
 import { GithubIcon } from "@/components/ui/Icons";
 import {
   Star,
@@ -10,17 +15,24 @@ import {
   ArrowUpRight,
   ChevronLeft,
   ChevronRight,
-  Code2,
   FolderGit2,
-  Sparkles,
-  Layers,
   LayoutGrid,
   Columns,
   Loader2,
+  FileText,
+  X,
+  Copy,
+  Check,
+  ExternalLink,
+  BookOpen,
+  Sparkles,
 } from "lucide-react";
 
 interface GitHubReposScrollProps {
   initialRepos: GitHubRepo[];
+  title?: string;
+  subtitle?: string;
+  badge?: string;
 }
 
 const LANGUAGE_COLORS: Record<string, string> = {
@@ -35,13 +47,24 @@ const LANGUAGE_COLORS: Record<string, string> = {
   Dart: "#00B4AB",
 };
 
-export function GitHubReposScroll({ initialRepos }: GitHubReposScrollProps) {
+export function GitHubReposScroll({
+  initialRepos,
+  title = "GitHub Repositories & Architecture Docs",
+  subtitle = "Live engineering codebases with instant Architecture Documentation viewers, stars, and language telemetry.",
+  badge = "Live Codebases & Architecture",
+}: GitHubReposScrollProps) {
   const [repos, setRepos] = useState<GitHubRepo[]>(initialRepos);
   const [viewMode, setViewMode] = useState<"scroll" | "grid">("scroll");
   const [selectedLanguage, setSelectedLanguage] = useState<string>("ALL");
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(initialRepos.length >= 6);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  // Docs Modal State
+  const [selectedRepoForDocs, setSelectedRepoForDocs] = useState<string | null>(null);
+  const [docsData, setDocsData] = useState<RepoArchitectureDoc | null>(null);
+  const [isLoadingDocs, setIsLoadingDocs] = useState(false);
+  const [copiedClone, setCopiedClone] = useState(false);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -74,7 +97,6 @@ export function GitHubReposScroll({ initialRepos }: GitHubReposScrollProps) {
       const data = await res.json();
 
       if (data.repos && Array.isArray(data.repos)) {
-        // Append unique repos
         setRepos((prev) => {
           const existingIds = new Set(prev.map((r) => r.id));
           const newUnique = data.repos.filter((r: GitHubRepo) => !existingIds.has(r.id));
@@ -87,6 +109,51 @@ export function GitHubReposScroll({ initialRepos }: GitHubReposScrollProps) {
       console.error("Failed to load more repos:", err);
     } finally {
       setIsLoadingMore(false);
+    }
+  };
+
+  const openDocsModal = async (repoName: string) => {
+    setSelectedRepoForDocs(repoName);
+    setIsLoadingDocs(true);
+    setDocsData(null);
+    setCopiedClone(false);
+
+    try {
+      const res = await fetch(`/api/github/docs?repo=${encodeURIComponent(repoName)}`);
+      const data = await res.json();
+      setDocsData(data);
+    } catch (err) {
+      console.error("Failed to fetch doc:", err);
+    } finally {
+      setIsLoadingDocs(false);
+    }
+  };
+
+  const closeDocsModal = () => {
+    setSelectedRepoForDocs(null);
+    setDocsData(null);
+  };
+
+  // Close modal on Escape
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeDocsModal();
+    };
+    if (selectedRepoForDocs) {
+      window.addEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "hidden";
+    }
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "unset";
+    };
+  }, [selectedRepoForDocs]);
+
+  const copyCloneCommand = (url: string) => {
+    if (typeof navigator !== "undefined") {
+      navigator.clipboard.writeText(`git clone ${url}.git`);
+      setCopiedClone(true);
+      setTimeout(() => setCopiedClone(false), 2500);
     }
   };
 
@@ -110,13 +177,13 @@ export function GitHubReposScroll({ initialRepos }: GitHubReposScrollProps) {
           <div>
             <div className="inline-flex items-center gap-2 text-xs font-mono tracking-widest uppercase text-neutral-500 mb-2">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              Live GitHub Repositories
+              {badge}
             </div>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-neutral-950 dark:text-white">
-              Open Source Codebases
+              {title}
             </h2>
             <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-1 max-w-xl">
-              Real-time engineering repositories, autonomous agent pipelines, APIs, and experiments synced securely via server proxy.
+              {subtitle}
             </p>
           </div>
 
@@ -209,13 +276,13 @@ export function GitHubReposScroll({ initialRepos }: GitHubReposScrollProps) {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: idx * 0.05 }}
-                className="w-[320px] sm:w-[360px] shrink-0 snap-start flex flex-col justify-between rounded-xl border border-neutral-200 dark:border-neutral-800/80 bg-white dark:bg-neutral-950 p-6 transition-all duration-300 hover:-translate-y-1 hover:border-neutral-900 dark:hover:border-neutral-100 hover:shadow-xl dark:hover:shadow-[0_0_25px_rgba(255,255,255,0.06)]"
+                className="w-[340px] sm:w-[380px] shrink-0 snap-start flex flex-col justify-between rounded-xl border border-neutral-200 dark:border-neutral-800/80 bg-white dark:bg-neutral-950 p-6 transition-all duration-300 hover:-translate-y-1 hover:border-neutral-900 dark:hover:border-neutral-100 hover:shadow-xl dark:hover:shadow-[0_0_25px_rgba(255,255,255,0.06)]"
               >
                 <div>
-                  {/* Top Bar: Language & External link */}
+                  {/* Top Bar: Language & Links */}
                   <div className="flex items-center justify-between gap-2 mb-4">
                     {repo.language ? (
-                      <span className="inline-flex items-center gap-1.5 text-xs font-mono text-neutral-700 dark:text-neutral-300 px-2 py-0.5 rounded border border-neutral-200 dark:border-neutral-800 bg-neutral-100/70 dark:bg-neutral-900">
+                      <span className="inline-flex items-center gap-1.5 text-xs font-mono text-neutral-700 dark:text-neutral-300 px-2.5 py-0.5 rounded border border-neutral-200 dark:border-neutral-800 bg-neutral-100/70 dark:bg-neutral-900">
                         <span
                           className="w-2 h-2 rounded-full"
                           style={{
@@ -242,7 +309,7 @@ export function GitHubReposScroll({ initialRepos }: GitHubReposScrollProps) {
                   </div>
 
                   {/* Title */}
-                  <h3 className="text-lg font-bold tracking-tight text-neutral-950 dark:text-white mb-2 font-mono group-hover:text-neutral-700 dark:group-hover:text-neutral-200">
+                  <h3 className="text-lg font-bold tracking-tight text-neutral-950 dark:text-white mb-2 font-mono">
                     <a
                       href={repo.htmlUrl}
                       target="_blank"
@@ -255,9 +322,21 @@ export function GitHubReposScroll({ initialRepos }: GitHubReposScrollProps) {
                   </h3>
 
                   {/* Description */}
-                  <p className="text-xs text-neutral-600 dark:text-neutral-400 line-clamp-3 leading-relaxed mb-6 font-normal min-h-[48px]">
+                  <p className="text-xs text-neutral-600 dark:text-neutral-400 line-clamp-3 leading-relaxed mb-4 font-normal min-h-[44px]">
                     {repo.description || "Open source software project and technical architecture."}
                   </p>
+
+                  {/* Architecture Docs Button */}
+                  <div className="mb-4">
+                    <button
+                      onClick={() => openDocsModal(repo.name)}
+                      className="w-full inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-lg border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/80 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-800 dark:text-neutral-200 text-xs font-mono font-medium transition-colors shadow-sm hover:border-neutral-400 dark:hover:border-neutral-600"
+                    >
+                      <FileText className="w-3.5 h-3.5 text-neutral-500" />
+                      <span>Architecture Docs</span>
+                      <BookOpen className="w-3 h-3 text-neutral-400 ml-auto" />
+                    </button>
+                  </div>
                 </div>
 
                 <div>
@@ -311,7 +390,7 @@ export function GitHubReposScroll({ initialRepos }: GitHubReposScrollProps) {
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-4">
                     {repo.language ? (
-                      <span className="inline-flex items-center gap-1.5 text-xs font-mono text-neutral-700 dark:text-neutral-300 px-2 py-0.5 rounded border border-neutral-200 dark:border-neutral-800 bg-neutral-100/70 dark:bg-neutral-900">
+                      <span className="inline-flex items-center gap-1.5 text-xs font-mono text-neutral-700 dark:text-neutral-300 px-2.5 py-0.5 rounded border border-neutral-200 dark:border-neutral-800 bg-neutral-100/70 dark:bg-neutral-900">
                         <span
                           className="w-2 h-2 rounded-full"
                           style={{
@@ -347,9 +426,21 @@ export function GitHubReposScroll({ initialRepos }: GitHubReposScrollProps) {
                     </a>
                   </h3>
 
-                  <p className="text-xs text-neutral-600 dark:text-neutral-400 line-clamp-3 leading-relaxed mb-6 font-normal">
+                  <p className="text-xs text-neutral-600 dark:text-neutral-400 line-clamp-3 leading-relaxed mb-4 font-normal min-h-[44px]">
                     {repo.description || "Open source software project and technical architecture."}
                   </p>
+
+                  {/* Architecture Docs Button */}
+                  <div className="mb-4">
+                    <button
+                      onClick={() => openDocsModal(repo.name)}
+                      className="w-full inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-lg border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/80 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-800 dark:text-neutral-200 text-xs font-mono font-medium transition-colors shadow-sm hover:border-neutral-400 dark:hover:border-neutral-600"
+                    >
+                      <FileText className="w-3.5 h-3.5 text-neutral-500" />
+                      <span>Architecture Docs</span>
+                      <BookOpen className="w-3 h-3 text-neutral-400 ml-auto" />
+                    </button>
+                  </div>
                 </div>
 
                 <div>
@@ -411,6 +502,132 @@ export function GitHubReposScroll({ initialRepos }: GitHubReposScrollProps) {
           </div>
         )}
       </div>
+
+      {/* Architecture Documentation Modal */}
+      <AnimatePresence>
+        {selectedRepoForDocs && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/75 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+              className="relative w-full max-w-4xl max-h-[90vh] rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 shadow-2xl flex flex-col overflow-hidden"
+            >
+              {/* Modal Top Bar */}
+              <div className="p-6 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between gap-4 bg-neutral-50/50 dark:bg-neutral-900/40">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="p-2 rounded-lg bg-black text-white dark:bg-white dark:text-black">
+                    <FileText className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-lg font-bold font-mono tracking-tight text-neutral-950 dark:text-white truncate">
+                        {selectedRepoForDocs}
+                      </h3>
+                      {docsData?.source && (
+                        <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded border border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-900 text-neutral-500 shrink-0">
+                          {docsData.source === "database"
+                            ? "Verified Case Study"
+                            : docsData.source === "github"
+                            ? "GitHub Markdown"
+                            : "Architecture Blueprint"}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-neutral-500 font-mono">
+                      System Architecture Specifications & README Documentation
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  {docsData?.projectSlug && (
+                    <Link
+                      href={`/projects/${docsData.projectSlug}`}
+                      target="_blank"
+                      className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black text-white dark:bg-white dark:text-black text-xs font-semibold hover:opacity-90 transition-opacity"
+                    >
+                      <span>Full Case Study</span>
+                      <ArrowUpRight className="w-3.5 h-3.5" />
+                    </Link>
+                  )}
+
+                  <button
+                    onClick={closeDocsModal}
+                    className="p-2 rounded-lg border border-neutral-200 dark:border-neutral-800 text-neutral-500 hover:text-black dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                    aria-label="Close modal"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Modal Body: Markdown Docs Viewer */}
+              <div className="flex-1 overflow-y-auto p-6 sm:p-8">
+                {isLoadingDocs ? (
+                  <div className="py-24 flex flex-col items-center justify-center gap-3 text-neutral-400">
+                    <Loader2 className="w-8 h-8 animate-spin" />
+                    <span className="text-xs font-mono">Compiling architecture documentation...</span>
+                  </div>
+                ) : docsData ? (
+                  <div className="space-y-6">
+                    {/* Action bar inside docs */}
+                    <div className="p-3.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/60 flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
+                      <div className="flex items-center gap-2">
+                        <GithubIcon className="w-4 h-4 text-neutral-500" />
+                        <span className="text-neutral-500">Repository:</span>
+                        <a
+                          href={docsData.repoUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-neutral-900 dark:text-white font-medium hover:underline flex items-center gap-1"
+                        >
+                          <span>{selectedRepoForDocs}</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </div>
+
+                      {docsData.repoUrl && (
+                        <button
+                          onClick={() => copyCloneCommand(docsData.repoUrl!)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
+                        >
+                          {copiedClone ? (
+                            <>
+                              <Check className="w-3 h-3 text-emerald-500" />
+                              <span>Copied Clone Command</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3 h-3 text-neutral-400" />
+                              <span>Copy `git clone`</span>
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Markdown Content */}
+                    <div className="prose prose-neutral dark:prose-invert max-w-none text-xs sm:text-sm leading-relaxed prose-headings:tracking-tight prose-headings:font-bold prose-pre:bg-neutral-950 prose-pre:border prose-pre:border-neutral-800">
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        rehypePlugins={[rehypeHighlight, rehypeRaw]}
+                      >
+                        {docsData.doc}
+                      </ReactMarkdown>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="py-20 text-center text-neutral-400 text-sm">
+                    Unable to load architecture documentation.
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }
