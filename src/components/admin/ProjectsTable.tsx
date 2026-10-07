@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { deleteProject, toggleFeaturedProject } from "@/lib/actions/projects";
+import { deleteProject, toggleFeaturedProject, syncGitHubProjectsAction } from "@/lib/actions/projects";
 import { toast } from "@/components/ui/Toaster";
 import {
   Plus,
@@ -15,6 +15,7 @@ import {
   Terminal,
   Sparkles,
   Eye,
+  RefreshCw,
 } from "lucide-react";
 
 interface ProjectItem {
@@ -51,6 +52,21 @@ export function ProjectsTable({ initialProjects }: { initialProjects: ProjectIte
     }
   };
 
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  const handleSyncGitHub = async () => {
+    setIsSyncing(true);
+    try {
+      const res = await syncGitHubProjectsAction();
+      toast.success(`Successfully synced ${res.count} projects from GitHub!`);
+      window.location.reload();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to sync GitHub projects");
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   const handleDelete = async (id: string, title: string) => {
     if (!confirm(`Are you sure you want to permanently delete "${title}"?`)) return;
 
@@ -77,6 +93,16 @@ export function ProjectsTable({ initialProjects }: { initialProjects: ProjectIte
         </div>
 
         <div className="flex items-center gap-3">
+          <button
+            onClick={handleSyncGitHub}
+            disabled={isSyncing}
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-neutral-300 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200 text-xs font-semibold hover:border-black dark:hover:border-white transition-colors disabled:opacity-50"
+            title="Fetch latest repos and READMEs from kartikgetitnow-spec and sync to database"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? "animate-spin" : ""}`} />
+            <span>{isSyncing ? "Syncing..." : "Sync from GitHub"}</span>
+          </button>
+
           <Link
             href="/admin/projects/new"
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-black text-white dark:bg-white dark:text-black text-xs font-semibold hover:opacity-90 transition-opacity"
