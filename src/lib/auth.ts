@@ -12,17 +12,28 @@ export const authOptions: NextAuthOptions = {
     CredentialsProvider({
       name: "Credentials",
       credentials: {
-        email: { label: "Email", type: "email", placeholder: "admin@example.com" },
+        email: { label: "Username / Email", type: "text", placeholder: "kartik1999" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          throw new Error("Please enter an email and password");
+          throw new Error("Please enter your username/email and password");
         }
 
-        const user = await prisma.user.findUnique({
+        const input = credentials.email.trim();
+        const inputLower = input.toLowerCase();
+        const usernameOnly = inputLower.split("@")[0];
+
+        const user = await prisma.user.findFirst({
           where: {
-            email: credentials.email.toLowerCase().trim(),
+            OR: [
+              { email: inputLower },
+              { email: input },
+              { name: input },
+              { name: inputLower },
+              { email: usernameOnly },
+              { name: usernameOnly },
+            ],
           },
         });
 

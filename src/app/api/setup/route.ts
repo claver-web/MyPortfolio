@@ -18,17 +18,17 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const adminEmail = process.env.ADMIN_EMAIL || "admin@portfolio.local";
-    const adminRawPassword = process.env.ADMIN_PASSWORD || "PortfolioAdmin@2024!";
+    const adminEmail = process.env.ADMIN_EMAIL || "kartik1999";
+    const adminRawPassword = process.env.ADMIN_PASSWORD || "@kartik321";
     const hashedPassword = await bcrypt.hash(adminRawPassword, 12);
 
     // Upsert Admin User
     const admin = await prisma.user.upsert({
       where: { email: adminEmail },
-      update: { password: hashedPassword },
+      update: { name: "kartik1999", password: hashedPassword },
       create: {
         email: adminEmail,
-        name: "Portfolio Admin",
+        name: "kartik1999",
         password: hashedPassword,
         role: "admin",
       },

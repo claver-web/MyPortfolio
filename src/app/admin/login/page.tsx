@@ -6,12 +6,12 @@ import { signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Lock, Mail, AlertCircle, Loader2, ShieldCheck, ArrowRight } from "lucide-react";
+import { Lock, Mail, User, AlertCircle, Loader2, ShieldCheck, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 const loginSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  email: z.string().min(1, "Please enter your username or email"),
+  password: z.string().min(1, "Please enter your password"),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -86,17 +86,17 @@ export default function AdminLoginPage() {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <div>
               <label className="block text-xs font-mono uppercase tracking-wider text-neutral-400 mb-2">
-                Admin Email
+                Admin Username or Email
               </label>
               <div className="relative">
                 <input
                   {...register("email")}
-                  type="email"
-                  autoComplete="email"
-                  placeholder="admin@example.com"
+                  type="text"
+                  autoComplete="username"
+                  placeholder="kartik1999"
                   className="w-full px-4 py-2.5 pl-10 rounded-lg border border-neutral-800 bg-neutral-900/80 text-white placeholder-neutral-600 text-sm focus:outline-none focus:border-white transition-colors"
                 />
-                <Mail className="w-4 h-4 text-neutral-500 absolute left-3.5 top-3" />
+                <User className="w-4 h-4 text-neutral-500 absolute left-3.5 top-3" />
               </div>
               {errors.email && (
                 <p className="text-red-400 text-xs mt-1.5">{errors.email.message}</p>
