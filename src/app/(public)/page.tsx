@@ -2,6 +2,7 @@ import React from "react";
 import { prisma } from "@/lib/prisma";
 import { Hero } from "@/components/sections/Hero";
 import { SocialLinks } from "@/components/sections/SocialLinks";
+import { LiveWebsitesShowcase } from "@/components/sections/LiveWebsitesShowcase";
 import { FeaturedProjects } from "@/components/sections/FeaturedProjects";
 import { GitHubReposSection } from "@/components/sections/GitHubReposSection";
 import { SkillsPreview } from "@/components/sections/SkillsPreview";
@@ -34,6 +35,7 @@ export default async function HomePage() {
         resumeUrl={settings.resumeUrl}
       />
       <SocialLinks />
+      <LiveWebsitesShowcase />
       <FeaturedProjects />
       <GitHubReposSection />
       <SkillsPreview />

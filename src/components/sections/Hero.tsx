@@ -131,10 +131,10 @@ export function Hero({
           className="flex flex-wrap items-center justify-center gap-4"
         >
           <Link
-            href="#projects"
+            href="#live-deployments"
             className="group inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-black text-white dark:bg-white dark:text-black font-medium text-sm transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg"
           >
-            <span>Explore Projects</span>
+            <span>View Live Deployments</span>
             <ArrowUpRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
           </Link>
 

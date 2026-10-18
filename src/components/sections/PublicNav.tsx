@@ -7,6 +7,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { Menu, X, Shield, Terminal } from "lucide-react";
 
 const NAV_LINKS = [
+  { href: "/#live-deployments", label: "Live Sites" },
   { href: "/projects", label: "Projects" },
   { href: "/agentic-ai", label: "Agentic AI" },
   { href: "/experience", label: "Experience" },
